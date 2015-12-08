@@ -1,0 +1,36 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorController;
+
+
+public class Auto1Op extends LinearOpMode {
+    DcMotor leftMotor;
+    DcMotor rightMotor;
+
+
+    public Auto1Op(){
+
+    }
+
+    public void runOpMode() throws InterruptedException{
+        leftMotor = hardwareMap.dcMotor.get("motor_1");
+        rightMotor = hardwareMap.dcMotor.get("motor_2");
+        rightMotor.setDirection(DcMotor.Direction.REVERSE);
+        leftMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        rightMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+
+        //waitForStart();
+
+        leftMotor.setPower(1.0);
+        rightMotor.setPower(1.0);
+        sleep(1000);
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
+        telemetry.addData("done ", "done" );
+        sleep(1000);
+
+        //StandardDrive.driveInches(12,1,1,leftMotor,rightMotor);
+    }
+}
