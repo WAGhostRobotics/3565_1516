@@ -1,0 +1,63 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
+
+public class TwoJoyOp extends OpMode{
+    DcMotor motorLeft;
+    DcMotor motorRight;
+    Servo arm;
+
+    public TwoJoyOp(){
+
+    }
+
+    public void init(){
+        //instantiate motors
+        motorLeft = hardwareMap.dcMotor.get("motor_1");
+        motorRight = hardwareMap.dcMotor.get("motor_2");
+
+        //initiate servo
+        arm = hardwareMap.servo.get("servo_1");
+
+        //reverse left motor
+        motorRight.setDirection(DcMotor.Direction.REVERSE);
+    }
+
+    public void loop(){
+        float y2 = gamepad1.right_stick_y;
+        float x2 = gamepad1.right_stick_x;
+        float y = gamepad1.left_stick_y;
+        float x = gamepad1.left_stick_x;
+
+        telemetry.addData("y2 tgt pwr",  "y2  pwr: " + String.format("%.2f", y2));
+        telemetry.addData("x2 tgt pwr", "x2 pwr: " + String.format("%.2f", x2));
+        telemetry.addData("y tgt pwr",  "y  pwr: " + String.format("%.2f", y));
+        telemetry.addData("x tgt pwr", "x pwr: " + String.format("%.2f", x));
+        telemetry.addData("right bumper: ", gamepad1.right_bumper && !gamepad1.left_bumper);
+
+        //two joysticks
+        motorLeft.setPower(y);
+        motorRight.setPower(y2);
+
+        if(gamepad1.right_bumper && !gamepad1.left_bumper){
+            try {
+                arm.setPosition(arm.getPosition() + 1);
+            } catch (IllegalArgumentException e) {
+                telemetry.addData("exception1: ",e);
+            }
+        } else if(gamepad1.left_bumper && !gamepad1.right_bumper){
+            try {
+                arm.setPosition(arm.getPosition() + 0);
+            } catch (IllegalArgumentException e) {
+                telemetry.addData("exception2: ",e);
+            }
+        }
+    }
+
+    public void stop(){
+
+    }
+}
