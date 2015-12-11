@@ -4,12 +4,17 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-
+/**
+ * Created by 7876 on 12/11/2015.
+ */
 public class TwoJoyOp extends OpMode{
     DcMotor motorLeft;
     DcMotor motorRight;
+    DcMotor grabLeft;
+    DcMotor grabRight;
     Servo arm;
-
+    Servo bpl;
+    Servo bpr;
     public TwoJoyOp(){
 
     }
@@ -18,12 +23,18 @@ public class TwoJoyOp extends OpMode{
         //instantiate motors
         motorLeft = hardwareMap.dcMotor.get("motor_1");
         motorRight = hardwareMap.dcMotor.get("motor_2");
-
+        grabLeft = hardwareMap.dcMotor.get("grabLeft");
+        grabRight = hardwareMap.dcMotor.get("grabRight");
         //initiate servo
-        arm = hardwareMap.servo.get("servo_1");
-
+        arm = hardwareMap.servo.get("guy");
+        bpl = hardwareMap.servo.get("buttonl");
+        bpr = hardwareMap.servo.get("buttonr");
         //reverse left motor
         motorRight.setDirection(DcMotor.Direction.REVERSE);
+        grabLeft.setDirection(DcMotor.Direction.REVERSE);
+
+        grabRight.setDirection(DcMotor.Direction.REVERSE);
+
     }
 
     public void loop(){
@@ -31,30 +42,50 @@ public class TwoJoyOp extends OpMode{
         float x2 = gamepad1.right_stick_x;
         float y = gamepad1.left_stick_y;
         float x = gamepad1.left_stick_x;
-
+        float z = gamepad1.right_trigger;
+        float z2 = gamepad1.left_trigger;
         telemetry.addData("y2 tgt pwr",  "y2  pwr: " + String.format("%.2f", y2));
         telemetry.addData("x2 tgt pwr", "x2 pwr: " + String.format("%.2f", x2));
-        telemetry.addData("y tgt pwr",  "y  pwr: " + String.format("%.2f", y));
+        telemetry.addData("y tgt pwr", "y  pwr: " + String.format("%.2f", y));
         telemetry.addData("x tgt pwr", "x pwr: " + String.format("%.2f", x));
         telemetry.addData("right bumper: ", gamepad1.right_bumper && !gamepad1.left_bumper);
-
+        telemetry.addData("right trigger: ", gamepad1.right_trigger);
         //two joysticks
         motorLeft.setPower(y);
         motorRight.setPower(y2);
-
-        if(gamepad1.right_bumper && !gamepad1.left_bumper){
+        //grabbers
+     //  if( gamepad1.right_trigger)
+      //  grabLeft.setPower(z/2);
+     //   grabRight.setPower(z/2);
+        if(gamepad2.right_bumper && !gamepad2.left_bumper){
             try {
                 arm.setPosition(arm.getPosition() + 1);
             } catch (IllegalArgumentException e) {
                 telemetry.addData("exception1: ",e);
             }
-        } else if(gamepad1.left_bumper && !gamepad1.right_bumper){
+        } else if(gamepad2.left_bumper && !gamepad2.right_bumper){
             try {
                 arm.setPosition(arm.getPosition() + 0);
             } catch (IllegalArgumentException e) {
                 telemetry.addData("exception2: ",e);
             }
         }
+
+      /* if(gamepad2.right_trigger & ){
+           try {
+               bpl.setPosition(bpl.getPosition() + 1);
+           } catch (IllegalArgumentException e) {
+               telemetry.addData("exception1: ",e);
+           }
+       } else if(gamepad2.left_trigger ){
+           try {
+               bpl.setPosition(bpl.getPosition() + 0);
+           } catch (IllegalArgumentException e) {
+               telemetry.addData("exception2: ",e);
+           }
+       }
+
+     */
     }
 
     public void stop(){
