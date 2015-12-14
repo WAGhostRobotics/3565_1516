@@ -12,7 +12,8 @@ import com.qualcomm.robotcore.util.Range;
 public class TeleOp1 extends OpMode {
     DcMotor motorLeft;
     DcMotor motorRight;
-
+    DcMotor grabLeft;
+    DcMotor grabRight;
     Servo buttonLeft;
     Servo buttonRight;
     Servo dump;
@@ -25,9 +26,9 @@ public class TeleOp1 extends OpMode {
 
     public void loop(){
         double y2 = gamepad1.left_stick_y;
-       // double x2 = gamepad1.left_stick_x;
+        // double x2 = gamepad1.left_stick_x;
         double y = gamepad1.right_stick_y;
-       // double x = gamepad1.left_stick_x;
+        // double x = gamepad1.left_stick_x;
 
         motorLeft.setPower(y);
         motorRight.setPower(y2);
@@ -60,8 +61,10 @@ public class TeleOp1 extends OpMode {
         buttonRightPosition = Range.clip(buttonRightPosition, 0, 1);
         dumpPostion = Range.clip(dumpPostion, 0, 1);
 
-        buttonLeft.setPosition(buttonLeftPostion);
-        buttonRight.setPosition(buttonRightPosition);
+        telemetry.addData("dump position",  ": " + String.format("%.2f", dumpPostion));
+
+        //  buttonLeft.setPosition(buttonLeftPostion);
+        //buttonRight.setPosition(buttonRightPosition);
         dump.setPosition(dumpPostion);
 
     }
@@ -69,11 +72,13 @@ public class TeleOp1 extends OpMode {
     public void init(){
         motorRight = hardwareMap.dcMotor.get("motor_2");
         motorLeft = hardwareMap.dcMotor.get("motor_1");
+        //grabLeft = hardwareMap.dcMotor.get("grabLeft");
+        //grabRight = hardwareMap.dcMotor.get("grabRight");
         motorRight.setDirection(DcMotor.Direction.REVERSE);
 
-        buttonLeft = hardwareMap.servo.get("servo_3"); // channel 3
-        buttonRight = hardwareMap.servo.get("servo_2"); // channel 2
-        dump = hardwareMap.servo.get("servo_1"); // channel 1
+        //buttonLeft = hardwareMap.servo.get("servo_3"); // channel 3
+        //buttonRight = hardwareMap.servo.get("servo_2"); // channel 2
+        dump = hardwareMap.servo.get("dump"); // channel 1
     }
 
 }
