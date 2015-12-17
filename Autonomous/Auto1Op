@@ -1,0 +1,19 @@
+package com.qualcomm.ftcrobotcontroller.opmodes;
+
+/**
+ * Created by 7876 on 12/9/2015.
+ *
+ * Authors: Lili,
+ *
+ * Autonomous 3565
+ *
+ * Versions: (ADD AS YOU EDIT)
+ * (Big changes.small changes)
+ * 1.0: Added first versions of methods, untested. Completed 12/17/15. Contributors: Lili */
+public class AutoOp1 extends StandardDrive{
+    public void runOpMode(){
+        begin(); //Don't delete this
+
+        driveInches(24,1,1); //Drive 2 feet
+    }
+}
