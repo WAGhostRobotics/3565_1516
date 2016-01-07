@@ -16,11 +16,13 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Versions: (ADD AS YOU EDIT)
  * (Big changes.small changes)
  * 1.0: Added first versions of methods, untested. Completed 12/17/15. Contributors: Lili
+ * 1.1  Redid DriveInches to deal with read/write problem. Doesn't work since we can't read the encoders.
  */
-public abstract class StandardDrive extends LinearOpMode {
+public abstract class StandardDrive extends LinearOpMode{
     //Declare motors and servos
     protected DcMotor leftMotor;
     protected DcMotor rightMotor;
+    protected DcMotorController motorController;
     protected Servo buttonLeft;
     protected Servo buttonRight;
     protected Servo dump;
@@ -33,17 +35,19 @@ public abstract class StandardDrive extends LinearOpMode {
 
     public abstract void runOpMode();
 
-    public void begin(){
+    public void begin() {
         //Initialize motors and servos
         leftMotor = hardwareMap.dcMotor.get("motor_1");
         rightMotor = hardwareMap.dcMotor.get("motor_2");
+        motorController = hardwareMap.dcMotorController.get("wheels");
         buttonLeft = hardwareMap.servo.get("buttonl"); // channel 3
         buttonRight = hardwareMap.servo.get("buttonr"); // channel 2
+
        // grab = hardwareMap.servo.get("servo_4"); //channel 4
         dump = hardwareMap.servo.get("dump"); // channel 1
         rightMotor.setDirection(DcMotor.Direction.REVERSE);
         leftMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        rightMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
+        rightMotor.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
     }
 
     /**
@@ -61,15 +65,62 @@ public abstract class StandardDrive extends LinearOpMode {
 
         //Get encoder value
         double encoderValue = inchesToEncoder(inches);
+        telemetry.addData("Encoder: ", encoderValue);
+        int state = 0;
+        int end = 0;
+        int currentPostion = 0;
+        int count = 0;
 
-        //Drive until robot reaches encoder value
-        while(rightMotor.getCurrentPosition() < encoderValue){
-            leftMotor.setPower(l);
-            rightMotor.setPower(r);
+        /*leftMotor.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        leftMotor.setTargetPosition((int) encoderValue);
+        leftMotor.setPower(r);*/
+
+        while(end == 0){
+            switch(state) {
+                case 0:
+                    count++;
+                    while (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.READ_ONLY)
+                        motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY);
+                    telemetry.clearData();
+                    telemetry.addData("Device Mode (0): ", motorController.getMotorControllerDeviceMode());
+                    telemetry.addData("Current Encoder (0): ", leftMotor.getCurrentPosition());
+                    telemetry.addData("Count (0): ",count);
+                    currentPostion = leftMotor.getCurrentPosition();
+                    state = 1;
+                    break;
+                case 1:
+                    count++;
+                    while (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.WRITE_ONLY)
+                        motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+                    telemetry.clearData();
+                    telemetry.addData("Device Mode (1): ", motorController.getMotorControllerDeviceMode());
+                    telemetry.addData("Count (1): ",count);
+                    if (currentPostion < encoderValue) {
+                        //rightMotor.setPower(r);
+                        leftMotor.setPower(l);
+                        state = 0;
+                    } else {
+                        state = 2;
+                    }
+                    break;
+                case 2:
+                    count++;
+                    while (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.WRITE_ONLY)
+                        motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+                    telemetry.clearData();
+                    telemetry.addData("Device Mode (2): ", motorController.getMotorControllerDeviceMode());
+                    telemetry.addData("Count (2): ",count);
+                    rightMotor.setPower(0);
+                    leftMotor.setPower(0);
+                    /*while (leftMotor.getMode() != DcMotorController.RunMode.RESET_ENCODERS)
+                        leftMotor.setMode(DcMotorController.RunMode.RESET_ENCODERS);
+                    while (leftMotor.getMode() != DcMotorController.RunMode.RUN_USING_ENCODERS)
+                        leftMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);*/
+                    end = 1;
+                    break;
+            }
         }
-
-        //Stop the robot
-        stopMotors();
+        telemetry.addData("end","end");
     }
 
     /**
@@ -93,6 +144,8 @@ public abstract class StandardDrive extends LinearOpMode {
      * Stop the motors
      */
     public void stopMotors(){
+        motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        try{ waitForNextHardwareCycle(); } catch(InterruptedException e) {}
         leftMotor.setPower(0);
         rightMotor.setPower(0);
     }
