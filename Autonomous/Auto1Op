@@ -9,11 +9,22 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  *
  * Versions: (ADD AS YOU EDIT)
  * (Big changes.small changes)
- * 1.0: Added first versions of methods, untested. Completed 12/17/15. Contributors: Lili */
+ * 1.0: Added first versions of methods, untested. Completed 12/17/15. Contributors: Lili
+ * 1.1  Redid DriveInches to deal with read/write problem. Doesn't work since we can't read the encoders. */
 public class AutoOp1 extends StandardDrive{
     public void runOpMode(){
         begin(); //Don't delete this
+        this.resetStartTime();
 
-        driveInches(24,1,1); //Drive 2 feet
+        //driveInches(24,1,1); //Drive 2 feet
+
+        while(this.getRuntime() < 1.0) {
+            rightMotor.setPower(1);
+            leftMotor.setPower(1);
+        }
+        
+        rightMotor.setPower(0);
+        leftMotor.setPower(0);
+
     }
 }
