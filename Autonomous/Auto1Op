@@ -10,7 +10,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  * Versions: (ADD AS YOU EDIT)
  * (Big changes.small changes)
  * 1.0: Added first versions of methods, untested. Completed 12/17/15. Contributors: Lili
- * 1.1  Redid DriveInches to deal with read/write problem. Doesn't work since we can't read the encoders. */
+ * 1.1  Now works with runtimes. */
 public class AutoOp1 extends StandardDrive{
     public void runOpMode(){
         begin(); //Don't delete this
