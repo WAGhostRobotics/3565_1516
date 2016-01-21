@@ -33,7 +33,7 @@ public abstract class StandardDrive extends LinearOpMode{
     private final double ROBOT_RADIUS = 15 / Math.PI; //Radius of robot (?)
     private final boolean LEFT = true; //Direction
 
-    public abstract void runOpMode();
+    public abstract void runOpMode() throws InterruptedException;
 
     public void begin() {
         //Initialize motors and servos
@@ -47,7 +47,7 @@ public abstract class StandardDrive extends LinearOpMode{
         dump = hardwareMap.servo.get("dump"); // channel 1
         rightMotor.setDirection(DcMotor.Direction.REVERSE);
         leftMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
-        rightMotor.setMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
+        rightMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
     }
 
     /**
@@ -71,6 +71,7 @@ public abstract class StandardDrive extends LinearOpMode{
         int currentPostion = 0;
         int count = 0;
 
+        //THIS IS OUR RUN_TO_POSITION CODE (ONE MOTOR ONLY). IT DOESN'T WORK
         /*leftMotor.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
         leftMotor.setTargetPosition((int) encoderValue);
         leftMotor.setPower(r);*/
@@ -78,51 +79,97 @@ public abstract class StandardDrive extends LinearOpMode{
         while(end == 0){
             switch(state) {
                 case 0:
-                    count++;
+                    count++; //Update count
+                    //Switch modes
                     while (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.READ_ONLY)
                         motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY);
+                    //Update data
                     telemetry.clearData();
                     telemetry.addData("Device Mode (0): ", motorController.getMotorControllerDeviceMode());
                     telemetry.addData("Current Encoder (0): ", leftMotor.getCurrentPosition());
                     telemetry.addData("Count (0): ",count);
-                    currentPostion = leftMotor.getCurrentPosition();
-                    state = 1;
+                    currentPostion = leftMotor.getCurrentPosition(); //Update encoder value
+                    state = 1; //Switch states
                     break;
                 case 1:
-                    count++;
+                    count++; //Update count
+                    //Switch modes
                     while (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.WRITE_ONLY)
                         motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+                    //Update data
                     telemetry.clearData();
                     telemetry.addData("Device Mode (1): ", motorController.getMotorControllerDeviceMode());
                     telemetry.addData("Count (1): ",count);
-                    if (currentPostion < encoderValue) {
+                    if (currentPostion < encoderValue) { //Keep driving if the encoder value is less than the target value
                         //rightMotor.setPower(r);
                         leftMotor.setPower(l);
                         state = 0;
-                    } else {
+                    } else { //Else stop
                         state = 2;
                     }
                     break;
                 case 2:
-                    count++;
+                    count++; //Update count
+                    //Switch modes
                     while (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.WRITE_ONLY)
                         motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+                    //Update data
                     telemetry.clearData();
                     telemetry.addData("Device Mode (2): ", motorController.getMotorControllerDeviceMode());
                     telemetry.addData("Count (2): ",count);
-                    rightMotor.setPower(0);
+
+                    //Stop motors
+                    //rightMotor.setPower(0);
                     leftMotor.setPower(0);
-                    /*while (leftMotor.getMode() != DcMotorController.RunMode.RESET_ENCODERS)
-                        leftMotor.setMode(DcMotorController.RunMode.RESET_ENCODERS);
-                    while (leftMotor.getMode() != DcMotorController.RunMode.RUN_USING_ENCODERS)
-                        leftMotor.setMode(DcMotorController.RunMode.RUN_USING_ENCODERS);*/
+
                     end = 1;
                     break;
             }
         }
-        telemetry.addData("end","end");
+        telemetry.addData("end", "end");
     }
 
+    public void driveInches2(double inches, int l, int r) throws InterruptedException {
+        double encoderValue = inchesToEncoder(inches);
+        telemetry.addData("encoder value ", encoderValue);
+        if (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.READ_ONLY) {
+            motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY);
+        }
+        encoderValue += leftMotor.getCurrentPosition();
+        if (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.WRITE_ONLY) {
+            motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        }
+        leftMotor.setMode(DcMotorController.RunMode.RUN_TO_POSITION);
+        leftMotor.setTargetPosition((int) encoderValue);
+        leftMotor.setPower(r);
+        if (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.READ_ONLY) {
+            motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY);
+        }
+        while (leftMotor.getCurrentPosition() < leftMotor.getTargetPosition()) {
+            telemetry.addData("current position ", leftMotor.getCurrentPosition());
+            telemetry.addData("target position ", leftMotor.getTargetPosition());
+            waitOneFullHardwareCycle();
+        }
+        if (motorController.getMotorControllerDeviceMode() != DcMotorController.DeviceMode.WRITE_ONLY) {
+            motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY);
+        }
+        leftMotor.setPower(0);
+    }
+
+    public void driveInches3(int inches, int r, int l) throws InterruptedException {
+        leftMotor.setMode(DcMotorController.RunMode.RUN_TO_POSITION); //Set mode
+        waitOneFullHardwareCycle();
+        motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.WRITE_ONLY); //Set mode
+        waitOneFullHardwareCycle();
+        leftMotor.setTargetPosition((int) inchesToEncoder(inches)); //Go specified number of inches (one motor)
+        leftMotor.setPower(l);
+
+        motorController.setMotorControllerDeviceMode(DcMotorController.DeviceMode.READ_ONLY); //Set mode
+        waitOneFullHardwareCycle();
+        //Display current positions
+        telemetry.addData("current position ", leftMotor.getCurrentPosition());
+        telemetry.addData("target position ", leftMotor.getTargetPosition());
+    }
     /**
      * Turn the robot a specified amount of degrees
      * @param direction: which way to turn, left = true, right = false
